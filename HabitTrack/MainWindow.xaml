@@ -7,19 +7,23 @@
         mc:Ignorable="d"
         Title="HabitTrack" Height="450" Width="800"
         WindowStartupLocation="CenterScreen" Background="White"
+        KeyDown="Window_KeyDown"
         ResizeMode="NoResize" Closing="Window_Closing">
     <Grid x:Name="MainGrid" Background="White">
         <StackPanel Margin="20">
             <TextBlock x:Name="TitleText" Text="HabitTrack" 
                        FontSize="24" Foreground="Black" Margin="0,0,0,10"/>
 
-            <ListBox x:Name="TaskList" Margin="0,0,0,10" Height="250"/>
+            <ListBox x:Name="TaskList" Margin="0,0,0,10" Height="250">
+                <!-- Items are CheckBox controls added from code-behind so each task can be checked/unchecked -->
+            </ListBox>
 
-            <TextBox x:Name="TaskInput" Height="28" Margin="0,0,0,10" />
+            <DockPanel Margin="0,0,0,10">
+                <TextBox x:Name="TaskInput" Height="28" DockPanel.Dock="Left" Width="560" />
+                <Button x:Name="AddTaskButton" Content="添加任务" Width="100" Margin="10,0,0,0"/>
+            </DockPanel>
 
-            <Button x:Name="AddTaskButton" Content="添加任务" Width="100" Margin="0,0,0,10"/>
-
-            <TextBlock Text="Copyright © HabitTrack 2025" 
+            <TextBlock Text="v1.0.0 © Absolute Studio" 
                        FontSize="12" Foreground="Gray" Margin="0,0,0,0"/>
         </StackPanel>
     </Grid>

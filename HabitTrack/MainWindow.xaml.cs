@@ -24,6 +24,7 @@ namespace HabitTrack
 
     public partial class MainWindow : Window
     {
+        // 在读取或写入文件之前，执行下面这行代码
         private string taskSavePath = System.IO.Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "habittrack_tasks.txt"
@@ -54,7 +55,8 @@ namespace HabitTrack
                 string task = TaskInput.Text.Trim();
                 if (!string.IsNullOrEmpty(task))
                 {
-                    TaskList.Items.Add(task);
+                    var cb = CreateTaskCheckBox(task, isSystem:false, isChecked:false);
+                    TaskList.Items.Add(cb);
                     TaskInput.Clear();
                     SaveTasks();
                 }
@@ -101,16 +103,36 @@ namespace HabitTrack
             TaskInput.Background = Brushes.Black;
             TaskInput.Foreground = Brushes.Red;
             TaskInput.BorderBrush = Brushes.Red;
-
             TaskInput.Visibility = Visibility.Collapsed;
             AddTaskButton.Visibility = Visibility.Collapsed;
 
             TaskList.Items.Clear();
-            TaskList.Items.Add("失败");
-            TaskList.Items.Add("嫉妒");
-            TaskList.Items.Add("孤独");
-            TaskList.Items.Add(Environment.UserName + "...");
+            // add final-stage items as disabled checked boxes with red foreground
+            TaskList.Items.Add(CreateTaskCheckBox("失败", isSystem:true, isChecked:true, disabled:true));
+            TaskList.Items.Add(CreateTaskCheckBox("嫉妒", isSystem:true, isChecked:true, disabled:true));
+            TaskList.Items.Add(CreateTaskCheckBox("孤独", isSystem:true, isChecked:true, disabled:true));
+            TaskList.Items.Add(CreateTaskCheckBox(Environment.UserName + "...", isSystem:true, isChecked:true, disabled:true));
             //TaskList.Items.Add("[Press any key to remember her face]");
+        }
+
+        private CheckBox CreateTaskCheckBox(string text, bool isSystem = false, bool isChecked = false, bool disabled = false)
+        {
+            var cb = new CheckBox();
+            cb.Content = text;
+            cb.IsChecked = isChecked;
+            cb.Margin = new Thickness(2);
+            if (isSystem)
+            {
+                cb.FontWeight = FontWeights.Bold;
+            }
+            if (disabled)
+            {
+                cb.IsEnabled = false;
+                cb.Foreground = Brushes.Red;
+            }
+            cb.Checked += (s, e) => SaveTasks();
+            cb.Unchecked += (s, e) => SaveTasks();
+            return cb;
         }
 
         private void ShowMeaningfulEnding()
@@ -133,10 +155,19 @@ namespace HabitTrack
 
         private void SaveTasks()
         {
-            var tasks = new List<string>();
+            var lines = new List<string>();
             foreach (var item in TaskList.Items)
-                tasks.Add(item.ToString());
-            File.WriteAllLines(taskSavePath, tasks);
+            {
+                var cb = item as CheckBox;
+                if (cb == null) continue;
+                // format: TYPE::ISCHECKED::TEXT
+                // TYPE: U = user, S = system
+                var type = (cb.FontWeight == FontWeights.Bold) ? "S" : "U";
+                var isChecked = cb.IsChecked == true ? "1" : "0";
+                var text = cb.Content.ToString().Replace("::", "--");
+                lines.Add(string.Format("{0}::{1}::{2}", type, isChecked, text));
+            }
+            File.WriteAllLines(taskSavePath, lines);
         }
 
         private void LoadTasks()
@@ -144,8 +175,24 @@ namespace HabitTrack
             if (File.Exists(taskSavePath))
             {
                 var tasks = File.ReadAllLines(taskSavePath);
-                foreach (var task in tasks)
-                    TaskList.Items.Add(task);
+                foreach (var line in tasks)
+                {
+                    // expected format: TYPE::ISCHECKED::TEXT
+                    var parts = line.Split(new string[] {"::"}, StringSplitOptions.None);
+                    if (parts.Length >= 3)
+                    {
+                        var type = parts[0];
+                        var isChecked = parts[1] == "1";
+                        var text = string.Join("::", parts, 2, parts.Length - 2);
+                        var isSystem = type == "S";
+                        TaskList.Items.Add(CreateTaskCheckBox(text, isSystem, isChecked));
+                    }
+                    else
+                    {
+                        // fallback: add raw text
+                        TaskList.Items.Add(CreateTaskCheckBox(line, false, false));
+                    }
+                }
             }
         }
 
