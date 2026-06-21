@@ -20,17 +20,22 @@ jobs:
       with:
         fetch-depth: 0
 
-    # 安装 .NET 环境
-    - name: Install .NET Core
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 8.0.x # 如果你使用的是 .NET 6 或 7，可以改成对应的版本
+    # Setup MSBuild for .NET Framework
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v1
 
-    # 还原依赖
+    # Restore NuGet packages
     - name: Restore the application
-      run: dotnet restore ${{ env.Solution_Name }}
+      run: msbuild ${{ env.Solution_Name }} -t:Restore
 
-    # 编译 WPF 项目为独立的单文件 Exe 
-    - name: Build and Publish HabitTrack
-      run: |
-        dotnet publish ${{ env.Wpf_Project_Path }} -c ${{ env.Configuration }} -r win-x64 --self-contained false -o ./publish_output
+    # Build the WPF project
+    - name: Build HabitTrack
+      run: msbuild ${{ env.Wpf_Project_Path }} -p:Configuration=${{ env.Configuration }} -p:Platform=AnyCPU
+
+    # Upload EXE to Release
+    - name: Upload Release Asset
+      uses: softprops/action-gh-release@v1
+      with:
+        files: HabitTrack/bin/${{ env.Configuration }}/HabitTrack.exe
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
