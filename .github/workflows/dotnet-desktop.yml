@@ -10,8 +10,8 @@ jobs:
     runs-on: windows-latest
 
     env:
-      Solution_Name: WpfApp1.sln
-      Wpf_Project_Path: WpfApp1/WpfApp1.csproj
+      Solution_Name: HabitTrack.sln
+      Wpf_Project_Path: HabitTrack/HabitTrack.csproj
       Configuration: Release
 
     steps:
@@ -31,7 +31,7 @@ jobs:
       run: dotnet restore ${{ env.Solution_Name }}
 
     # 编译 WPF 项目为独立的单文件 Exe 
-    - name: Build and Publish WpfApp1
+    - name: Build and Publish HabitTrack
       run: |
         dotnet publish ${{ env.Wpf_Project_Path }} -c ${{ env.Configuration }} -r win-x64 --self-contained false -o ./publish_output
         
@@ -39,14 +39,14 @@ jobs:
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: WpfApp1-Windows-Exe
+        name: HabitTrack-Windows-Exe
         path: ./publish_output/
 
     # 【检查点 2】自动创建 GitHub Release 并把 exe 挂上去
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v2
       with:
-        files: ./publish_output/WpfApp1.exe
+        files: ./publish_output/HabitTrack.exe
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
