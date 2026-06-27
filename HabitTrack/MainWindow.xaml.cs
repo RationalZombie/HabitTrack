@@ -25,14 +25,12 @@ namespace HabitTrack
     public partial class MainWindow : Window
     {
         // 在读取或写入文件之前，执行下面这行代码
-        private string taskSavePath = System.IO.Path.Combine(
+        private string _habitTrackFolder = System.IO.Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "habittrack_tasks.txt"
+            "HabitTrack"
         );
-        private string daySavePath = System.IO.Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "habittrack_day.txt"
-        );
+        private string taskSavePath => System.IO.Path.Combine(_habitTrackFolder, "habittrack_tasks.txt");
+        private string daySavePath => System.IO.Path.Combine(_habitTrackFolder, "habittrack_day.txt");
 
         private int _dayCount = 0;
         private Random _rand = new Random();
@@ -41,6 +39,10 @@ namespace HabitTrack
         public MainWindow()
         {
             InitializeComponent();
+
+            // 确保 HabitTrack 文件夹存在
+            if (!Directory.Exists(_habitTrackFolder))
+                Directory.CreateDirectory(_habitTrackFolder);
 
             // 读取天数
             if (File.Exists(daySavePath))
@@ -203,11 +205,26 @@ namespace HabitTrack
             File.WriteAllText(daySavePath, _dayCount.ToString());
         }
 
+        private void DeleteTask_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            if (TaskList.SelectedItem != null)
+            {
+                TaskList.Items.Remove(TaskList.SelectedItem);
+                SaveTasks();
+            }
+        }
+
         private void Window_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
             if (_finalStage)
             {
                 ShowMeaningfulEnding();
+            }
+            else if (e.Key == Key.Delete && TaskList.SelectedItem != null)
+            {
+                TaskList.Items.Remove(TaskList.SelectedItem);
+                SaveTasks();
+                e.Handled = true;
             }
         }
     }

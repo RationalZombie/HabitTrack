@@ -16,15 +16,22 @@
 
             <ListBox x:Name="TaskList" Margin="0,0,0,10" Height="250">
                 <!-- Items are CheckBox controls added from code-behind so each task can be checked/unchecked -->
+                <ListBox.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="Delete Task" Click="DeleteTask_Click"/>
+                    </ContextMenu>
+                </ListBox.ContextMenu>
             </ListBox>
 
             <DockPanel Margin="0,0,0,10">
-                <TextBox x:Name="TaskInput" Height="28" DockPanel.Dock="Left" Width="560" />
-                <Button x:Name="AddTaskButton" Content="添加任务" Width="100" Margin="10,0,0,0"/>
+                <TextBox x:Name="TaskInput" DockPanel.Dock="Left" Width="560" Text="Insert task here..."/>
+                <Button x:Name="AddTaskButton" Content="Add Task"/>
             </DockPanel>
 
-            <TextBlock Text="v1.0.0 © Absolute Studio" 
-                       FontSize="12" Foreground="Gray" Margin="0,0,0,0"/>
+
         </StackPanel>
+        <TextBlock Text="v1.0.0 © Absolute Studio" 
+                       HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                       FontSize="12" Foreground="Gray" Margin="0,0,20,20"/>
     </Grid>
 </Window>
