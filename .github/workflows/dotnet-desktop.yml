@@ -1,4 +1,4 @@
-name: .NET Core Desktop Build and Release
+name: .NET Framework Desktop Build and Release
 
 on:
   push:
@@ -8,6 +8,10 @@ on:
 jobs:
   build:
     runs-on: windows-latest
+
+    # 显式声明赋予此任务写权限，防止创建 Release 时报错
+    permissions:
+      contents: write
 
     env:
       Solution_Name: HabitTrack.sln
@@ -20,22 +24,27 @@ jobs:
       with:
         fetch-depth: 0
 
-    # Setup MSBuild for .NET Framework
+    # 1. 配置并添加 MSBuild 到环境变量
     - name: Setup MSBuild
-      uses: microsoft/setup-msbuild@v1
+      uses: microsoft/setup-msbuild@v2
 
-    # Restore NuGet packages
-    - name: Restore the application
+    # 2. 还原 NuGet 依赖包
+    - name: Restore NuGet Packages
       run: msbuild ${{ env.Solution_Name }} -t:Restore
 
-    # Build the WPF project
+    # 3. 编译整个 WPF 项目
     - name: Build HabitTrack
       run: msbuild ${{ env.Wpf_Project_Path }} -p:Configuration=${{ env.Configuration }} -p:Platform=AnyCPU
 
-    # Upload EXE to Release
+    # 4. 将 Release 文件夹内的所有依赖项和 exe 一起压缩成一个 zip 包
+    - name: Zip Release Folder
+      run: |
+        Compress-Archive -Path HabitTrack/bin/${{ env.Configuration }}/* -DestinationPath ./HabitTrack_Release.zip
+
+    # 5. 将完整的 zip 压缩包上传到 GitHub Release
     - name: Upload Release Asset
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
-        files: HabitTrack/bin/${{ env.Configuration }}/HabitTrack.exe
+        files: ./HabitTrack_Release.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
