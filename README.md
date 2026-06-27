@@ -1,5 +1,6 @@
 # Note
 > This is a vibe coded project.
+> 
 > .NET Framework version: 4.7.2
 
 This is a creepypasta, and this program serves as the mainline of the story. This story and program have not yet been published on any other platform.
